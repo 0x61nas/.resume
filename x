@@ -28,6 +28,7 @@ Usage: x <command> [args]
 Commands:
   compile, c, build      Build and publish the resume (nix on NixOS, Docker otherwise)
   compile-docker, cd     Build and publish the resume with the Docker flow
+  html                   Build a self-contained HTML version
   publish <pdf>          Sign a built PDF and copy it into the website repo
   push, p [flags] [branch]
                          Push branch to all remotes (default: -u aurora)
@@ -81,6 +82,16 @@ compile-docker() {
     echo_nd_run doas chmod 644 "$output_file"
 
     publish "$output_file"
+}
+
+html() {
+    local output_file
+    output_file="dist/anas-resume-$(git rev-parse HEAD 2>/dev/null || echo unknown).html"
+
+    info 'Building the resume as a self-contained HTML file...'
+    mkdir -p dist
+    echo_nd_run ./build-html.sh "$output_file"
+    ok "wrote $output_file"
 }
 
 publish() {
@@ -191,6 +202,7 @@ case $arg in
     help|h|--help|-h) usage ;;
     compile|c|build|b) compile ;;
     compile-docker|cd) compile-docker ;;
+    html) html ;;
     publish|pub) publish "$@" ;;
     print-remotes|pr) print-remotes ;;
     setup-remotes|sr) setup-remotes ;;
