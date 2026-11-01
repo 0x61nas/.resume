@@ -21,7 +21,7 @@
         inherit (pkgs) lib;
 
         # These mirror the variables at the top of ./build.sh, which is what
-        # the justfile used to run inside Docker.
+        # ./x runs inside Docker.
         theme = "modern";
         headerStyle = "centric";
         # ./build.sh defines this as 'github\.com\/0x61nas' only so that it
@@ -123,7 +123,6 @@
             pkgs.texlab
             pkgs.zathura
             pkgs.wmctrl
-            pkgs.just
           ];
         };
 
