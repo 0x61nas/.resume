@@ -28,3 +28,29 @@ docker run -it --network=host -w /work -v "$(pwd):/work" \
 ```
 
 The Docker flow writes the PDF to `dist/` and its filename to `build/output_path`.
+
+## HTML
+
+Build a single self-contained HTML file (CSS embedded, no external assets):
+
+With `x`:
+
+```sh
+./x html             # writes dist/anas-resume-<rev>.html
+```
+
+Reproducibly with Nix:
+
+```sh
+nix build .#html     # writes result/anas-resume-<rev>.html
+```
+
+Without `x`:
+
+```sh
+./build-html.sh dist/anas-resume.html
+```
+
+`pandoc` is required and is included in the `nix develop` shell. Use
+`THEME=terminal ./x html` (or another theme from `resume.tex`) to change the
+colours.
