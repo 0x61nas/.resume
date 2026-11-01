@@ -110,10 +110,45 @@
             homepage = "https://thatsillyman.win";
           };
         };
+
+        html = pkgs.stdenvNoCC.mkDerivation {
+          pname = "anas-resume-html";
+          version = shortRev;
+
+          src = self;
+
+          nativeBuildInputs = [ pkgs.pandoc ];
+
+          GIT_HASH = rev;
+          THEME = theme;
+          HEADER_STYLE = headerStyle;
+          BUILDING_PLATFORM = buildingPlatform;
+          PDFLATEX_VERSION = "HTML build";
+
+          buildPhase = ''
+            runHook preBuild
+
+            bash ./build-html.sh "$TMPDIR/anas-resume-${rev}.html"
+
+            runHook postBuild
+          '';
+
+          installPhase = ''
+            runHook preInstall
+            install -Dm644 "$TMPDIR/anas-resume-${rev}.html" "$out/anas-resume-${rev}.html"
+            runHook postInstall
+          '';
+
+          meta = {
+            description = "Anas Elgarhy's resume as a self-contained HTML file";
+            homepage = "https://thatsillyman.win";
+          };
+        };
       in
       {
         packages = {
           default = resume;
+          inherit html;
         };
 
         devShells.default = pkgs.mkShell {
@@ -123,6 +158,7 @@
             pkgs.texlab
             pkgs.zathura
             pkgs.wmctrl
+            pkgs.pandoc
           ];
         };
 
