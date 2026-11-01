@@ -71,6 +71,15 @@
 
           nativeBuildInputs = [ tex ];
 
+          # Consumed by ./pre-build.sh, which fills in the @{...} placeholders
+          # exactly the way build.sh does.
+          GIT_HASH = rev;
+          GPG_FINGREPRINT = gpgFingerprint;
+          GIT_HOST = gitHost;
+          THEME = theme;
+          HEADER_STYLE = headerStyle;
+          BUILDING_PLATFORM = buildingPlatform;
+
           # Keep TeX from trying to write caches into $HOME.
           TEXMFHOME = "./texmf-home";
           TEXMFVAR = "./texmf-var";
@@ -79,22 +88,12 @@
           SOURCE_DATE_EPOCH = toString self.lastModified;
           FORCE_SOURCE_DATE = "1";
 
-          # Same substitutions as ./build.sh, but with literal (escaped)
-          # replacements so values containing /, & or \ are safe.
+          # The substitution logic lives in ./pre-build.sh so that nix builds
+          # and build.sh stay in sync.
           buildPhase = ''
             runHook preBuild
 
-            pdflatex_version=$(pdflatex -version | head -n 1)
-
-            substituteInPlace ./resume.tex \
-              --replace-fail '@{GIT_HASH}' '${rev}' \
-              --replace-fail '@{GPG_FINGREPRINT}' '${gpgFingerprint}' \
-              --replace-fail '@{GIT_HOST}' '${gitHost}' \
-              --replace-fail '@{THEME}' '${theme}' \
-              --replace-fail '@{HEADER_STYLE}' '${headerStyle}' \
-              --replace-fail '@{BUILDING_PLATFORM}' '${buildingPlatform}' \
-              --replace-fail '@{PDFLATEX_VERSION}' "$pdflatex_version"
-
+            bash ./pre-build.sh ./resume.tex
             latexmk -pdf resume.tex
 
             runHook postBuild
@@ -120,6 +119,7 @@
         devShells.default = pkgs.mkShell {
           packages = [
             tex
+            pkgs.git
             pkgs.texlab
             pkgs.zathura
             pkgs.wmctrl
