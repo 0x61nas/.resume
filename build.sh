@@ -4,15 +4,8 @@ set -euo pipefail
 
 PROOT="$PWD"
 GIT_HASH=$(git rev-parse HEAD)
-GPG_FINGREPRINT="EF4B4CB5DFB8822216A473B1597AB12E66262898"
-GIT_HOST='github\.com\/0x61nas'
-THEME='modern'
-HEADER_STYLE='centric'
 BUILD_DIR="$PROOT/build"
 DIST_DIR="$PROOT/dist"
-source /etc/os-release
-: "${BUILDING_PLATFORM:=$PRETTY_NAME}"
-PDFLATEX_VERSION=$(pdflatex -version | head -n 1)
 
 fail() {
 	echo "Error: " "$@" >/dev/stderr
@@ -25,24 +18,19 @@ log() {
 
 if [[ -d "$BUILD_DIR" ]]; then
 	log "Clean up the build dir..."
-	rm -rf $BUILD_DIR/* || fail
+	rm -rf "$BUILD_DIR"/* || fail
 else
 	log "the build directory does not exsist!"
 	log "creating a new build directory.."
-	mkdir $BUILD_DIR || fail
+	mkdir "$BUILD_DIR" || fail
 fi
 
-cp ./resume.tex ./latexmk $BUILD_DIR || fail
+cp ./resume.tex ./latexmk ./pre-build.sh "$BUILD_DIR" || fail
 
-cd $BUILD_DIR || fail
+cd "$BUILD_DIR" || fail
 
-sed -i "s/@{GIT_HASH}/$GIT_HASH/g" resume.tex || fail
-sed -i "s/@{GPG_FINGREPRINT}/$GPG_FINGREPRINT/g" resume.tex || fail
-sed -i "s/@{GIT_HOST}/$GIT_HOST/g" resume.tex || fail
-sed -i "s/@{THEME}/$THEME/g" resume.tex || fail
-sed -i "s/@{HEADER_STYLE}/$HEADER_STYLE/g" resume.tex || fail
-sed -i "s/@{BUILDING_PLATFORM}/$BUILDING_PLATFORM/g" resume.tex || fail
-sed -i "s/@{PDFLATEX_VERSION}/$PDFLATEX_VERSION/g" resume.tex || fail
+# Fill in the @{...} placeholders. The same script is used by flake.nix.
+GIT_HASH="$GIT_HASH" bash ./pre-build.sh ./resume.tex || fail
 
 latexmk -pdf resume.tex || fail
 
