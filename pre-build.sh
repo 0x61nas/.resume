@@ -35,10 +35,17 @@ fail() {
     exit 1
 }
 
-replace() {
-    local placeholder=$1 value=$2
+# Escape the characters that are special in a sed replacement.
+sed_escape() {
+    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/[/&]/\\&/g'
+}
 
-    sed -i "s/$placeholder/$value/g" "$DOC" | fail "Failed to process the `$placeholder` pre-processor"
+replace() {
+    local placeholder=$1 value=$2 escaped
+
+    escaped=$(sed_escape "$value")
+    sed -i "s/$placeholder/$escaped/g" "$DOC" ||
+        fail "Failed to process the '$placeholder' pre-processor"
 }
 
 replace '@{GIT_HASH}' "$GIT_HASH"
